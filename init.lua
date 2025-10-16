@@ -1,12 +1,16 @@
-require("finnegan.core.mapping")
-require("finnegan.core.options")
-require("finnegan.core.diagnostics")
-require("finnegan.core.refactoring")
-require("finnegan.lazy")
-require("finnegan.core.which-key-mapping")
-
 if vim.g.vscode then
-    print("VSCode extension")
-else
-    print("ordinary Neovim")
+	require("core.vscode")
+	print("VSCode extension")
+	return
 end
+
+print("hi")
+
+-- Make sure to setup `mapleader` and `maplocalleader` before
+-- loading lazy.nvim so that mappings are correct.
+require("core.mapping")
+require("core.diagnostics")
+require("core.options")
+
+
+require("config.lazy")

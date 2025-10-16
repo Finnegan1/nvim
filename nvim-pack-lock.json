@@ -1,0 +1,47 @@
+{
+  "plugins": {
+    "cmp-nvim-lsp": {
+      "rev": "bd5a7d6",
+      "src": "https://github.com/hrsh7th/cmp-nvim-lsp"
+    },
+    "formatter.nvim": {
+      "rev": "b9d7f85",
+      "src": "https://github.com/mhartington/formatter.nvim"
+    },
+    "harpoon": {
+      "rev": "ed1f853",
+      "src": "https://github.com/ThePrimeagen/harpoon",
+      "version": "'harpoon2'"
+    },
+    "mason-lspconfig.nvim": {
+      "rev": "f995805",
+      "src": "https://github.com/williamboman/mason-lspconfig.nvim",
+      "version": "1.0.0 - 2.0.0"
+    },
+    "mason.nvim": {
+      "rev": "3ea894b",
+      "src": "https://github.com/williamboman/mason.nvim",
+      "version": "1.0.0 - 2.0.0"
+    },
+    "nvim-lspconfig": {
+      "rev": "ac98db2",
+      "src": "https://github.com/neovim/nvim-lspconfig"
+    },
+    "nvim-treesitter": {
+      "rev": "42fc28ba",
+      "src": "https://github.com/nvim-treesitter/nvim-treesitter"
+    },
+    "plenary.nvim": {
+      "rev": "b9fd522",
+      "src": "https://github.com/nvim-lua/plenary.nvim"
+    },
+    "telescope.nvim": {
+      "rev": "b4da76b",
+      "src": "https://github.com/nvim-telescope/telescope.nvim"
+    },
+    "tree-sitter-templ": {
+      "rev": "27a1fc6",
+      "src": "https://github.com/vrischmann/tree-sitter-templ"
+    }
+  }
+}
