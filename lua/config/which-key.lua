@@ -9,4 +9,5 @@ require("which-key").add({
 	{ "<leader>a", group = "AI" },
 	{ "<leader>ac", group = "Claude Code" },
 	{ "<leader>ag", group = "GPT" },
+	{ "<leader>j", group = "jupyter", icon = { icon = "", color = "blue" } },
 })
