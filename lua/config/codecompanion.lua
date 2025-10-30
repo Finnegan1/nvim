@@ -27,6 +27,18 @@ require('codecompanion').setup {
     openrouter = function()
       return require("adapters.openrouter")
     end,
+    acp = {
+      claude_code = function()
+        return require("codecompanion.adapters").extend("claude_code", {})
+      end,
+      codex = function()
+        return require("codecompanion.adapters").extend("codex", {
+          defaults = {
+            auth_method = "chatgpt", -- "openai-api-key"|"codex-api-key"|"chatgpt"
+          },
+        })
+      end,
+    },
   },
 }
 vim.keymap.set("v", "ga", "<cmd>CodeCompanionChat Add<cr>", { noremap = true, silent = true })

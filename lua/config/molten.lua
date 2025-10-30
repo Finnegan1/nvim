@@ -1,112 +1,61 @@
 
--- Auto-initialize molten for supported file types using FileType event
--- This is more reliable than BufEnter for detecting file type changes
+-- Auto-initialize molten for supported file types
 vim.api.nvim_create_autocmd("FileType", {
-  pattern = {"python", "notebook", "quarto", "markdown", "rmarkdown"},
-  callback = function()
-    -- Only initialize if not already done for this buffer
-    if not vim.b.molten_initialized then
-      local success = pcall(vim.cmd, "MoltenInit")
-      if success then
-        vim.b.molten_initialized = true
-      end
-    end
-  end,
+	pattern = {"notebook", "quarto", "markdown", "rmarkdown"},
+	callback = function()
+		if not vim.b.molten_initialized then
+			vim.defer_fn(function()
+				local success = pcall(vim.cmd, "MoltenInit")
+				if success then
+					vim.b.molten_initialized = true
+					-- Activate quarto runner
+					local ok, quarto_runner = pcall(require, "quarto.runner")
+					if ok and quarto_runner.activate then
+						pcall(quarto_runner.activate, "molten")
+					end
+				end
+			end, 100)
+		end
+	end,
 })
 
--- Initialization / Kernel Selection
-local wk = require("which-key")
 local runner = require("quarto.runner")
 local quarto = require("quarto")
 
--- Helper function to create kernel from uv/pip environment
 local function create_kernel()
-  vim.cmd("MoltenSelectKernel")
+	vim.cmd("MoltenSelectKernel")
 end
 
-wk.add({
-	{ "<leader>j", group = "jupyter", icon = { icon = "", color = "blue" } },
+local function init_molten_runner()
+	vim.cmd("MoltenInit")
+	vim.b.molten_initialized = true
+	local ok, quarto_runner = pcall(require, "quarto.runner")
+	if ok and quarto_runner.activate then
+		quarto_runner.activate("molten")
+		vim.notify("Molten initialized and quarto runner activated", vim.log.levels.INFO)
+	else
+		vim.notify("Molten initialized but quarto runner activation failed", vim.log.levels.WARN)
+	end
+end
 
-	{ "<leader>jA", runner.run_all, desc = "All Cells" },
-	{ "<leader>ja", runner.run_above, desc = "Cell and Above" },
-	{ "<leader>jc", runner.run_cell, desc = "Cell" },
-	{ "<leader>jl", runner.run_line, desc = "Line" },
-
-	{ "<leader>jp", quarto.quartoPreview, desc = "Open Preview" },
-	{ "<leader>jq", quarto.quartoClosePreview, desc = "Close Preview" },
-
-	{ "<leader>jd", ":MoltenLoad<cr>", desc = "Load Molten State" },
-	{ "<leader>jk", create_kernel, desc = "Select Kernel" },
-	{ "<leader>js", ":MoltenSave<cr>", desc = "Save Molten State" },
-	{ "<leader>ji", ":MoltenInit<cr>", desc = "Init Molten" },
-	{ "<leader>jD", ":MoltenDeinit<cr>", desc = "Deinit Molten" },
-	{ "<leader>jI", ":MoltenImagePopup<cr>", desc = "Show Image" },
-	{ "<leader>jo", ":MoltenShowOutput<cr>", desc = "Show Output" },
-	{ "<leader>jv", "<cmd>VenvSelect<cr>", desc = "Select LSP Env" },
+vim.api.nvim_create_user_command("QuartoMoltenInit", init_molten_runner, {
+	desc = "Initialize Molten and activate Quarto runner"
 })
 
+-- Keymaps
+vim.keymap.set("n", "<leader>jA", runner.run_all, { desc = "Run all cells" })
+vim.keymap.set("n", "<leader>ja", runner.run_above, { desc = "Run cell and above" })
+vim.keymap.set("n", "<leader>jc", runner.run_cell, { desc = "Run cell" })
+vim.keymap.set("n", "<leader>jl", runner.run_line, { desc = "Run line" })
 
+vim.keymap.set("n", "<leader>jp", quarto.quartoPreview, { desc = "Open Preview" })
+vim.keymap.set("n", "<leader>jq", quarto.quartoClosePreview, { desc = "Close Preview" })
 
-
-
--- vim.api.nvim_create_user_command('SetupNotebookEnvironment', function(opts)
--- 	local project_name = opts.args
-
--- 	if project_name == "" then
--- 	  vim.notify("Error: Please provide a project name", vim.log.levels.ERROR)
--- 	  return
--- 	end
-
--- 	local cwd = vim.fn.getcwd()
--- 	local venv_path = cwd .. "/.venv"
-
--- 	-- Check if venv already exists
--- 	if vim.fn.isdirectory(venv_path) == 1 then
--- 	  local response = vim.fn.input("Virtual environment already exists. Recreate? (y/n): ")
--- 	  if response:lower() ~= "y" then
--- 		vim.notify("Cancelled", vim.log.levels.INFO)
--- 		return
--- 	  end
--- 	  vim.fn.system("rm -rf " .. venv_path)
--- 	end
-
--- 	vim.notify("Setting up notebook environment for: " .. project_name, vim.log.levels.INFO)
-
--- 	local cmd = string.format([[
--- 	  cd %s &&
--- 	  echo "Creating virtual environment..." &&
--- 	  uv venv %s &&
--- 	  echo "Installing ipykernel..." &&
--- 	  %s/bin/python -m pip install --upgrade pip &&
--- 	  %s/bin/python -m pip install ipykernel &&
--- 	  ([ -f requirements.txt ] && echo "Installing requirements..." && %s/bin/python -m pip install -r requirements.txt || echo "No requirements.txt found, skipping...") &&
--- 	  echo "Registering Jupyter kernel..." &&
--- 	  %s/bin/python -m ipykernel install --user --name %s &&
--- 	  echo "" &&
--- 	  echo "✓ Setup complete!" &&
--- 	  echo "  Virtual env: %s" &&
--- 	  echo "  Kernel name: %s" &&
--- 	  echo "" &&
--- 	  echo "To activate: source %s/bin/activate" &&
--- 	  echo "To use in Molten: :MoltenInit %s"
--- 	]], cwd, venv_path, venv_path, venv_path, venv_path, venv_path, project_name, venv_path, project_name, venv_path, project_name)
-
--- 	-- Run the setup command
--- 	vim.fn.system(cmd)
-
---   end, {
--- 	nargs = 1,
--- 	complete = function()
--- 	  -- Auto-complete with current directory name
--- 	  return { vim.fn.fnamemodify(vim.fn.getcwd(), ':t') }
--- 	end,
--- 	desc = "Setup uv venv and jupyter kernel for notebook environment"
---   })
-
--- -- Function to create kernel from conda environment
--- function create_kernel_from_conda()
---   vim.cmd("MoltenSelectKernel")
--- end
-
-
-
+vim.keymap.set("n", "<leader>jd", "<cmd>MoltenLoad<cr>", { desc = "Load Molten State" })
+vim.keymap.set("n", "<leader>jk", create_kernel, { desc = "Select Kernel" })
+vim.keymap.set("n", "<leader>js", "<cmd>MoltenSave<cr>", { desc = "Save Molten State" })
+vim.keymap.set("n", "<leader>ji", init_molten_runner, { desc = "Init Molten + Quarto" })
+vim.keymap.set("n", "<leader>jD", "<cmd>MoltenDeinit<cr>", { desc = "Deinit Molten" })
+vim.keymap.set("n", "<leader>jI", "<cmd>MoltenImagePopup<cr>", { desc = "Show Image" })
+vim.keymap.set("n", "<leader>jo", "<cmd>MoltenShowOutput<cr>", { desc = "Show Output" })
+vim.keymap.set("n", "<leader>jv", "<cmd>VenvSelect<cr>", { desc = "Select LSP Env" })
