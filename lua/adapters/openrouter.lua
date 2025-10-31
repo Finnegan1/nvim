@@ -9,15 +9,26 @@ local _cached_models
 
 -- Fallback models if API fetch fails
 local FALLBACK_MODELS = {
-  ['google/gemini-2.0-flash-thinking-exp'] = { opts = { stream = true, has_tools = true, has_vision = true, can_reason = true } },
-  ['google/gemini-2.0-flash-001'] = { opts = { stream = true, has_tools = true, has_vision = true, can_reason = false } },
-  ['anthropic/claude-3.7-sonnet'] = { opts = { stream = true, has_tools = true, has_vision = true, can_reason = false } },
-  ['anthropic/claude-3.5-sonnet'] = { opts = { stream = true, has_tools = true, has_vision = true, can_reason = false } },
-  ['openai/gpt-4o-mini'] = { opts = { stream = true, has_tools = true, has_vision = true, can_reason = false } },
-  ['openai/o1'] = { opts = { stream = true, has_tools = true, has_vision = true, can_reason = true } },
-  ['openai/o1-mini'] = { opts = { stream = true, has_tools = true, has_vision = true, can_reason = true } },
-  ['deepseek/deepseek-r1'] = { opts = { stream = true, has_tools = true, has_vision = true, can_reason = true } },
-  ['x-ai/grok-2-vision-1212'] = { opts = { stream = true, has_tools = true, has_vision = true, can_reason = false } },
+  -- Top tier coding models
+  ['anthropic/claude-sonnet-4.5'] = { opts = { stream = true, has_tools = true, has_vision = true, can_reason = false } },
+  ['google/gemini-2.5-flash'] = { opts = { stream = true, has_tools = true, has_vision = true, can_reason = true } },  -- Hybrid reasoning, fast
+  ['google/gemini-2.5-pro'] = { opts = { stream = true, has_tools = true, has_vision = true, can_reason = true } },  -- Best overall, expensive
+  
+  -- Fast & efficient coding models
+  ['x-ai/grok-code-fast-1'] = { opts = { stream = true, has_tools = true, has_vision = true, can_reason = true } },
+  ['x-ai/grok-4-fast'] = { opts = { stream = true, has_tools = true, has_vision = true, can_reason = true } },  -- Vision-enabled reasoning, very affordable
+  ['anthropic/claude-haiku-4.5'] = { opts = { stream = true, has_tools = true, has_vision = true, can_reason = true } },
+
+  -- OpenAI models
+  ['openai/gpt-5'] = { opts = { stream = true, has_tools = true, has_vision = true, can_reason = false } },
+  ['openai/gpt-5-mini'] = { opts = { stream = true, has_tools = true, has_vision = true, can_reason = false } },
+  -- Budget-friendly reasoning models
+  ['deepseek/deepseek-r1'] = { opts = { stream = true, has_tools = false, has_vision = false, can_reason = true } },  -- Open source, pure reasoning
+  ['deepseek/deepseek-v3'] = { opts = { stream = true, has_tools = false, has_vision = false, can_reason = false } },  -- Open source, very cheap
+
+  -- Specialized coding models
+  ['qwen/qwen3-235b'] = { opts = { stream = true, has_tools = true, has_vision = false, can_reason = false } },  -- Strong coding performance
+  ['mistralai/devstral-small'] = { opts = { stream = true, has_tools = true, has_vision = false, can_reason = false } },  -- Code-focused
 }
 
 ---Remove any keys from the message that are not allowed by the API
@@ -54,7 +65,9 @@ end
 ---Return the cached models
 ---@return any
 local function models()
-  return _cached_models
+  -- for now I just want to use the fallback models
+  return FALLBACK_MODELS
+  -- return _cached_models
 end
 
 ---Get a list of available OpenRouter models
@@ -407,6 +420,45 @@ return {
     ---@param context? table Useful context about the buffer to inline to
     ---@return {status: string, output: table}|nil
     inline_output = function(self, data, context)
+      if not data or data == '' then
+        return nil
+      end
+
+      -- Handle both streamed data and structured response
+      local data_mod = type(data) == 'table' and data.body or utils.clean_streamed_data(data)
+      
+      -- Skip processing states (OpenRouter sometimes sends these)
+      if type(data_mod) == 'string' and data_mod:match('OPENROUTER_PROCESSING') then
+        return nil
+      end
+      
+      local ok, json = pcall(vim.json.decode, data_mod, { luanil = { object = true } })
+
+      if not ok then
+        -- Only log non-processing errors
+        if not (type(data_mod) == 'string' and data_mod:match('OPENROUTER')) then
+          log:error('Failed to parse OpenRouter response: %s', data_mod)
+        end
+        return nil
+      end
+
+      -- Check for API errors
+      if json.error then
+        local error_msg = type(json.error) == 'table' and json.error.message or json.error
+        log:error('OpenRouter API error: %s', error_msg)
+        vim.notify(
+          string.format('OpenRouter API error: %s', error_msg),
+          vim.log.levels.ERROR,
+          { title = 'CodeCompanion' }
+        )
+        return nil
+      end
+
+      if not json.choices or #json.choices == 0 then
+        log:warn('OpenRouter response missing choices field. Response: %s', vim.inspect(json))
+        return nil
+      end
+
       return openai.handlers.inline_output(self, data, context)
     end,
 
@@ -445,10 +497,10 @@ return {
       type = 'enum',
       desc = 'ID of the model to use. See the model endpoint compatibility table for details on which models work with the Chat API.',
       ---@type string|fun(arg: CodeCompanion.HTTPAdapter): string
-      default = 'google/gemini-2.0-flash-thinking-exp',
+      default = os.getenv('CODECOMPANION_OPENROUTER_MODEL') or 'anthropic/claude-sonnet-4.5',
       ---@type string|fun(arg: CodeCompanion.HTTPAdapter): table
       choices = function(self)
-        return get_models(self)
+        return FALLBACK_MODELS
       end,
     },
     reasoning_effort = {
