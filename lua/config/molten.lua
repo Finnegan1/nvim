@@ -1,7 +1,7 @@
 
 -- Auto-initialize molten for supported file types
 vim.api.nvim_create_autocmd("FileType", {
-	pattern = {"notebook", "quarto", "markdown", "rmarkdown"},
+	pattern = {"notebook", "quarto", "rmarkdown"},
 	callback = function()
 		if not vim.b.molten_initialized then
 			vim.defer_fn(function()
@@ -11,8 +11,17 @@ vim.api.nvim_create_autocmd("FileType", {
 					-- Activate quarto runner
 					local ok, quarto_runner = pcall(require, "quarto.runner")
 					if ok and quarto_runner.activate then
-						pcall(quarto_runner.activate, "molten")
+						-- Handle potential errors in activation
+						local activate_success, err = pcall(quarto_runner.activate, "molten")
+						if not activate_success then
+							vim.notify("Failed to activate Quarto runner: " .. tostring(err), vim.log.levels.WARN)
+						end
+					else
+						vim.notify("Quarto runner not available or activate method missing", vim.log.levels.WARN)
 					end
+					else
+					vim.notify("Failed to initialize Molten", vim.log.levels.ERROR)
+						-- Do not set initialized if MoltenInit fails
 				end
 			end, 100)
 		end

@@ -1,4 +1,3 @@
-
 local function read_env(name)
   local value = os.getenv(name)
   if value and value ~= '' then
@@ -6,12 +5,16 @@ local function read_env(name)
   end
 end
 
+local openrouter_creator = require('adapters/openrouterV2')
+local standard_inline = read_env('CODECOMPANION_INLINE_MODEL') or 'anthropic/claude-haiku-4.5'
+
 require('codecompanion').setup {
   adapters = {
     http = {
-      openrouter = function()
-        return require('adapters.openrouter')
-      end,
+      openrouter_claude_sonnet_4_5 = openrouter_creator('anthropic/claude-sonnet-4.5'),
+      openrouter_x_ai_grok_code_fast_1 = openrouter_creator('x-ai/grok-code-fast-1'),
+      openrouter_anthropic_claude_haiku_4_5 = openrouter_creator('anthropic/claude-haiku-4.5'),
+      openrouter_standard_inline = openrouter_creator(standard_inline),
     },
     acp = {
       claude_code = function()
@@ -58,10 +61,10 @@ require('codecompanion').setup {
   },
   strategies = {
     chat = {
-      adapter = 'openrouter',
+      adapter = 'openrouter_x_ai_grok_code_fast_1',
       keymaps = {
         send = {
-          modes = { i = '<C-s>', n = '<C-s>' },
+          modes = { i = '<C-s>', n = '<CR>' },
         },
         close = {
           modes = { i = '<C-c>', n = '<C-c>' },
@@ -69,7 +72,7 @@ require('codecompanion').setup {
       },
     },
     inline = {
-      adapter = 'openrouter',
+      adapter = 'openrouter_standard_inline',
       keymaps = {
         accept_change = {
           modes = { n = 'gda' },
@@ -88,8 +91,11 @@ require('codecompanion').setup {
 local function inline_prompt(opts)
   opts = opts or {}
 
-  local prompt = vim.fn.input(opts.prompt or 'CodeCompanion prompt: ')
-  if not prompt or prompt == '' then
+  local ok, prompt = pcall(function()
+    return vim.fn.input(opts.prompt or 'CodeCompanion prompt: ')
+  end)
+  
+  if not ok or not prompt or prompt == '' then
     return
   end
 
