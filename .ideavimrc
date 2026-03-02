@@ -1,0 +1,446 @@
+" ============================================================================
+" .ideavimrc - IdeaVim configuration mirroring Neovim setup
+" ============================================================================
+" This config replicates the Neovim configuration as closely as possible
+" using IdeaVim plugins and IntelliJ actions
+" ============================================================================
+
+" ============================================================================
+" IDEAVIM PLUGINS
+" ============================================================================
+" Enable IdeaVim extensions for enhanced functionality
+Plug 'tpope/vim-commentary'           " Comment/uncomment with gc
+Plug 'tpope/vim-surround'             " Surround text objects
+Plug 'vim-scripts/argtextobj.vim'     " Argument text objects (via, >ia, etc)
+Plug 'tommcdo/vim-exchange'           " Exchange text with cx
+Plug 'terryma/vim-multiple-cursors'   " Multiple cursors
+Plug 'machakann/vim-highlightedyank'  " Highlight yanked text
+Plug 'dbakker/vim-paragraph-motion'   " Better paragraph motion
+Plug 'michaeljsmith/vim-indent-object' " Indent text object (vii, vai)
+Plug 'vim-scripts/ReplaceWithRegister' " Replace with register (gr)
+Plug 'kana/vim-textobj-entire'        " Entire buffer text object (vae, vie)
+
+" IdeaVim specific extensions
+set quickscope                        " Highlight f/t targets
+set which-key                         " Which-key like functionality
+set notimeout                         " No timeout for which-key
+set commentary                        " Enable commentary
+set surround                          " Enable surround
+set multiple-cursors                  " Enable multiple cursors
+set highlightedyank                   " Enable highlighted yank
+set argtextobj                        " Enable argument text objects
+set exchange                          " Enable exchange operator
+set textobj-entire                    " Enable entire buffer text object
+set ReplaceWithRegister               " Enable replace with register
+
+" ============================================================================
+" CORE SETTINGS
+" ============================================================================
+" Leader keys (matching Neovim config)
+let mapleader = " "                   " Space as leader key
+let maplocalleader = "\\"             " Backslash as local leader
+set timeoutlen=500                    " Timeout for key sequences
+
+" Line numbers
+set number                            " Show line numbers
+set relativenumber                    " Show relative line numbers
+
+" Search settings
+set ignorecase                        " Ignore case in search
+set smartcase                         " Smart case sensitivity
+set incsearch                         " Incremental search
+set hlsearch                          " Highlight search results
+
+" Indentation (2 spaces, matching Neovim)
+set tabstop=2                         " Tab width
+set shiftwidth=2                      " Indent width
+set expandtab                         " Use spaces instead of tabs
+set autoindent                        " Auto indent
+set smartindent                       " Smart indent
+
+" Editor behavior
+set clipboard=unnamed,unnamedplus     " System clipboard integration
+set scrolloff=8                       " Keep 8 lines visible when scrolling
+set sidescrolloff=8                   " Keep 8 columns visible
+set wrap                              " Disable line wrapping (note: IdeaVim uses 'set wrap' differently)
+set showmode                          " Show current mode
+set showcmd                           " Show command in bottom bar
+set visualbell                        " Visual bell instead of beeping
+set noerrorbells                      " No error bells
+
+" IDE integration
+set ideajoin                          " Use IDE's smart join
+set idearefactormode=keep             " Keep visual mode after refactoring
+set ideastatusicon=gray               " Gray icon when IdeaVim is active
+
+" ============================================================================
+" BASIC MAPPINGS (from core/mapping.lua)
+" ============================================================================
+" File explorer (- key opens file tree)
+nnoremap - :action SelectInProjectView<CR>
+
+" Window navigation
+" Note: Custom characters (ª, @, , º) may not work in all terminals
+" Using standard alternatives as well
+nnoremap ª <C-w>h
+nnoremap @ <C-w>l
+nnoremap <C-h> <C-w>h
+nnoremap <C-l> <C-w>l
+nnoremap <C-j> <C-w>j
+nnoremap <C-k> <C-w>k
+
+" Move lines (Mac special characters + standard alternatives)
+nnoremap  :action MoveLineUp<CR>
+nnoremap º :action MoveLineDown<CR>
+nnoremap <A-k> :action MoveLineUp<CR>
+nnoremap <A-j> :action MoveLineDown<CR>
+vnoremap  :action MoveLineUp<CR>
+vnoremap º :action MoveLineDown<CR>
+vnoremap <A-k> :action MoveLineUp<CR>
+vnoremap <A-j> :action MoveLineDown<CR>
+
+" ============================================================================
+" LSP MAPPINGS (from config/lsp.lua)
+" ============================================================================
+" Navigation (using IntelliJ's powerful navigation)
+nnoremap gd :action GotoDeclaration<CR>
+nnoremap gr :action ShowUsages<CR>
+nnoremap gi :action GotoImplementation<CR>
+nnoremap gt :action GotoTypeDeclaration<CR>
+nnoremap gD :action GotoDeclaration<CR>
+nnoremap gy :action GotoTypeDeclaration<CR>
+
+" Documentation and hover
+nnoremap K :action QuickJavaDoc<CR>
+nnoremap <leader>K :action QuickImplementations<CR>
+
+" Code actions and refactoring
+nnoremap <leader>da :action ShowIntentionActions<CR>
+vnoremap <leader>da :action ShowIntentionActions<CR>
+nnoremap <leader>lr :action RenameElement<CR>
+nnoremap <leader>lf :action ReformatCode<CR>
+nnoremap <leader>lo :action OptimizeImports<CR>
+nnoremap <leader>lg :action Generate<CR>
+nnoremap <leader>lc :action CallHierarchy<CR>
+nnoremap <leader>lt :action GotoTest<CR>
+nnoremap <leader>ls :action FileStructurePopup<CR>
+
+" ============================================================================
+" DIAGNOSTIC/ERROR NAVIGATION (from core/diagnostics.lua)
+" ============================================================================
+nnoremap <leader>dp :action GotoPreviousError<CR>
+nnoremap <leader>dn :action GotoNextError<CR>
+nnoremap <leader>ds :action ShowErrorDescription<CR>
+nnoremap <leader>dw :action ActivateProblemsViewToolWindow<CR>
+nnoremap <leader>dd :action ShowErrorDescription<CR>
+nnoremap ]d :action GotoNextError<CR>
+nnoremap [d :action GotoPreviousError<CR>
+
+" ============================================================================
+" TELESCOPE-LIKE FUZZY FINDING (using IntelliJ search)
+" ============================================================================
+" File navigation
+nnoremap <leader>ff :action GotoFile<CR>
+nnoremap <leader>fg :action FindInPath<CR>
+nnoremap <leader>fb :action RecentFiles<CR>
+nnoremap <leader>fr :action RecentFiles<CR>
+nnoremap <leader>fs :action GotoSymbol<CR>
+nnoremap <leader>fa :action GotoAction<CR>
+nnoremap <leader>fc :action GotoClass<CR>
+nnoremap <leader>ft :action ActivateTerminalToolWindow<CR>
+
+" Search everywhere (like Telescope)
+nnoremap <leader><leader> :action SearchEverywhere<CR>
+nnoremap <C-p> :action GotoFile<CR>
+nnoremap <C-f> :action FindInPath<CR>
+
+" ============================================================================
+" HARPOON-LIKE BOOKMARKS (from config/harpoon.lua)
+" ============================================================================
+" Using IntelliJ's bookmarks as Harpoon replacement
+nnoremap <leader>ha :action ToggleBookmark<CR>
+nnoremap <leader>hv :action ShowBookmarks<CR>
+nnoremap <leader>hs :action ShowBookmarks<CR>
+nnoremap <leader>hh :action GotoPreviousBookmark<CR>
+nnoremap <leader>hl :action GotoNextBookmark<CR>
+
+" Numbered bookmarks (0-9)
+nnoremap <leader>h1 :action GotoBookmark1<CR>
+nnoremap <leader>h2 :action GotoBookmark2<CR>
+nnoremap <leader>h3 :action GotoBookmark3<CR>
+nnoremap <leader>h4 :action GotoBookmark4<CR>
+nnoremap <leader>h5 :action GotoBookmark5<CR>
+
+" Set numbered bookmarks
+nnoremap m1 :action ToggleBookmark1<CR>
+nnoremap m2 :action ToggleBookmark2<CR>
+nnoremap m3 :action ToggleBookmark3<CR>
+nnoremap m4 :action ToggleBookmark4<CR>
+nnoremap m5 :action ToggleBookmark5<CR>
+
+" ============================================================================
+" FORMATTING (from config/formatter.lua)
+" ============================================================================
+nnoremap <leader>f :action ReformatCode<CR>
+vnoremap <leader>f :action ReformatCode<CR>
+nnoremap <leader>F :action ShowReformatFileDialog<CR>
+
+" ============================================================================
+" COMMENTING (from config/comment.lua)
+" ============================================================================
+" Using vim-commentary plugin (enabled above)
+" gcc - toggle line comment (default)
+" gc{motion} - comment/uncomment motion
+" gcap - comment paragraph
+" In visual mode: gc
+
+" Additional comment mappings
+nnoremap <leader>/ :action CommentByLineComment<CR>
+vnoremap <leader>/ :action CommentByLineComment<CR>
+
+" ============================================================================
+" UNDOTREE / LOCAL HISTORY (from config/undotree.lua)
+" ============================================================================
+nnoremap <leader>u :action LocalHistory.ShowHistory<CR>
+nnoremap <leader>U :action Vcs.ShowTabbedFileHistory<CR>
+
+" ============================================================================
+" GIT INTEGRATION
+" ============================================================================
+nnoremap <leader>gb :action Annotate<CR>
+nnoremap <leader>gd :action Compare.SameVersion<CR>
+nnoremap <leader>gs :action Vcs.Show.Local.Changes<CR>
+nnoremap <leader>gc :action CheckinProject<CR>
+nnoremap <leader>gp :action Vcs.Push<CR>
+nnoremap <leader>gu :action Vcs.UpdateProject<CR>
+nnoremap <leader>gl :action Vcs.Show.Log<CR>
+nnoremap <leader>gh :action Vcs.ShowTabbedFileHistory<CR>
+
+" Git hunks navigation
+nnoremap ]h :action VcsShowNextChangeMarker<CR>
+nnoremap [h :action VcsShowPrevChangeMarker<CR>
+nnoremap <leader>hr :action Vcs.RollbackChangedLines<CR>
+nnoremap <leader>hp :action VcsShowCurrentChangeMarker<CR>
+
+" ============================================================================
+" DATABASE UI (from config/dadbod.lua)
+" ============================================================================
+nnoremap <leader>b :action ActivateDatabaseToolWindow<CR>
+
+" ============================================================================
+" AI INTEGRATION PLACEHOLDERS
+" ============================================================================
+" Note: CodeCompanion/Claude Code features are not available in IntelliJ
+" But we can map to IntelliJ AI features if available
+nnoremap <leader>ai :action ActivateAIAssistantToolWindow<CR>
+nnoremap <leader>aa :action com.github.copilot.chat.actions.ShowChatPanel<CR>
+nnoremap <leader>ac :action com.github.copilot.chat.actions.ShowChatPanel<CR>
+
+" ============================================================================
+" JUPYTER/NOTEBOOK INTEGRATION
+" ============================================================================
+" Note: Molten/Jupyter features are specific to Neovim
+" IntelliJ has built-in Jupyter support in PyCharm/DataSpell
+" These mappings work if Jupyter plugin is installed
+nnoremap <leader>jc :action RunCell<CR>
+nnoremap <leader>jA :action RunAllCells<CR>
+nnoremap <leader>ja :action RunCellAndSelectBelow<CR>
+nnoremap <leader>jl :action RunToLine<CR>
+
+" ============================================================================
+" WINDOW/TAB MANAGEMENT
+" ============================================================================
+" Split navigation (already covered above with <C-hjkl>)
+" Split creation
+nnoremap <leader>sv :action SplitVertically<CR>
+nnoremap <leader>sh :action SplitHorizontally<CR>
+nnoremap <leader>sc :action Unsplit<CR>
+nnoremap <leader>so :action UnsplitAll<CR>
+
+" Tab navigation
+nnoremap <leader>tn :action NextTab<CR>
+nnoremap <leader>tp :action PreviousTab<CR>
+nnoremap <leader>tc :action CloseContent<CR>
+nnoremap <leader>to :action CloseAllEditorsButActive<CR>
+nnoremap <Tab> :action NextTab<CR>
+nnoremap <S-Tab> :action PreviousTab<CR>
+
+" ============================================================================
+" ADDITIONAL USEFUL MAPPINGS
+" ============================================================================
+" Clear search highlighting
+nnoremap <Esc> :nohlsearch<CR>
+nnoremap <leader>nh :nohlsearch<CR>
+
+" Better indenting (keep selection in visual mode)
+vnoremap < <gv
+vnoremap > >gv
+
+" Move visual selection
+vnoremap J :m '>+1<CR>gv=gv
+vnoremap K :m '<-2<CR>gv=gv
+
+" Paste without yanking in visual mode
+vnoremap p "_dP
+
+" Center search results
+nnoremap n nzzzv
+nnoremap N Nzzzv
+
+" Join lines and center
+nnoremap J mzJ`z
+
+" Undo break points
+inoremap , ,<C-g>u
+inoremap . .<C-g>u
+inoremap ! !<C-g>u
+inoremap ? ?<C-g>u
+
+" Quick save
+nnoremap <leader>w :w<CR>
+nnoremap <leader>q :q<CR>
+nnoremap <leader>x :x<CR>
+
+" Select all
+nnoremap <leader>sa ggVG
+
+" ============================================================================
+" RUN/DEBUG CONFIGURATIONS
+" ============================================================================
+nnoremap <leader>rr :action Run<CR>
+nnoremap <leader>rd :action Debug<CR>
+nnoremap <leader>rs :action Stop<CR>
+nnoremap <leader>rc :action ChooseRunConfiguration<CR>
+nnoremap <leader>re :action editRunConfigurations<CR>
+
+" Debug stepping
+nnoremap <leader>bb :action ToggleLineBreakpoint<CR>
+nnoremap <leader>bc :action Resume<CR>
+nnoremap <leader>bs :action StepOver<CR>
+nnoremap <leader>bi :action StepInto<CR>
+nnoremap <leader>bo :action StepOut<CR>
+nnoremap <leader>be :action EvaluateExpression<CR>
+
+" ============================================================================
+" REFACTORING
+" ============================================================================
+nnoremap <leader>re :action RenameElement<CR>
+nnoremap <leader>rm :action ExtractMethod<CR>
+vnoremap <leader>rm :action ExtractMethod<CR>
+nnoremap <leader>rv :action IntroduceVariable<CR>
+vnoremap <leader>rv :action IntroduceVariable<CR>
+nnoremap <leader>rf :action IntroduceField<CR>
+nnoremap <leader>rc :action IntroduceConstant<CR>
+nnoremap <leader>rp :action IntroduceParameter<CR>
+nnoremap <leader>ri :action Inline<CR>
+
+" ============================================================================
+" WHICH-KEY CONFIGURATION
+" ============================================================================
+let g:WhichKeyDesc_leader = "<leader> Leader key"
+
+" Diagnostics group
+let g:WhichKeyDesc_diagnostics = "<leader>d +Diagnostics"
+let g:WhichKeyDesc_diagnostics_prev = "<leader>dp Previous diagnostic"
+let g:WhichKeyDesc_diagnostics_next = "<leader>dn Next diagnostic"
+let g:WhichKeyDesc_diagnostics_show = "<leader>ds Show diagnostic"
+let g:WhichKeyDesc_diagnostics_workspace = "<leader>dw Workspace diagnostics"
+let g:WhichKeyDesc_diagnostics_buffer = "<leader>dd Buffer diagnostics"
+
+" LSP group
+let g:WhichKeyDesc_lsp = "<leader>l +LSP"
+let g:WhichKeyDesc_lsp_rename = "<leader>lr Rename"
+let g:WhichKeyDesc_lsp_format = "<leader>lf Format"
+let g:WhichKeyDesc_lsp_optimize = "<leader>lo Optimize imports"
+let g:WhichKeyDesc_lsp_generate = "<leader>lg Generate"
+let g:WhichKeyDesc_lsp_hierarchy = "<leader>lc Call hierarchy"
+let g:WhichKeyDesc_lsp_test = "<leader>lt Go to test"
+let g:WhichKeyDesc_lsp_structure = "<leader>ls File structure"
+
+" Harpoon/Bookmarks group
+let g:WhichKeyDesc_harpoon = "<leader>h +Harpoon/Bookmarks"
+let g:WhichKeyDesc_harpoon_add = "<leader>ha Add bookmark"
+let g:WhichKeyDesc_harpoon_view = "<leader>hv View bookmarks"
+let g:WhichKeyDesc_harpoon_search = "<leader>hs Search bookmarks"
+let g:WhichKeyDesc_harpoon_prev = "<leader>hh Previous bookmark"
+let g:WhichKeyDesc_harpoon_next = "<leader>hl Next bookmark"
+
+" Find/Fuzzy group
+let g:WhichKeyDesc_find = "<leader>f +Find"
+let g:WhichKeyDesc_find_files = "<leader>ff Find files"
+let g:WhichKeyDesc_find_grep = "<leader>fg Find in files"
+let g:WhichKeyDesc_find_buffers = "<leader>fb Recent files"
+let g:WhichKeyDesc_find_symbol = "<leader>fs Find symbol"
+let g:WhichKeyDesc_find_action = "<leader>fa Find action"
+
+" AI group
+let g:WhichKeyDesc_ai = "<leader>a +AI"
+let g:WhichKeyDesc_ai_inline = "<leader>ai AI assistant"
+let g:WhichKeyDesc_ai_chat = "<leader>ac AI chat"
+let g:WhichKeyDesc_ai_actions = "<leader>aa AI actions"
+
+" Jupyter group
+let g:WhichKeyDesc_jupyter = "<leader>j +Jupyter"
+let g:WhichKeyDesc_jupyter_run_cell = "<leader>jc Run cell"
+let g:WhichKeyDesc_jupyter_run_all = "<leader>jA Run all"
+let g:WhichKeyDesc_jupyter_run_above = "<leader>ja Run above"
+let g:WhichKeyDesc_jupyter_run_line = "<leader>jl Run line"
+
+" Git group
+let g:WhichKeyDesc_git = "<leader>g +Git"
+let g:WhichKeyDesc_git_blame = "<leader>gb Git blame"
+let g:WhichKeyDesc_git_diff = "<leader>gd Git diff"
+let g:WhichKeyDesc_git_status = "<leader>gs Git status"
+let g:WhichKeyDesc_git_commit = "<leader>gc Git commit"
+let g:WhichKeyDesc_git_push = "<leader>gp Git push"
+let g:WhichKeyDesc_git_update = "<leader>gu Git update"
+let g:WhichKeyDesc_git_log = "<leader>gl Git log"
+let g:WhichKeyDesc_git_history = "<leader>gh Git history"
+
+" Run/Debug group
+let g:WhichKeyDesc_run = "<leader>r +Run/Debug"
+let g:WhichKeyDesc_run_run = "<leader>rr Run"
+let g:WhichKeyDesc_run_debug = "<leader>rd Debug"
+let g:WhichKeyDesc_run_stop = "<leader>rs Stop"
+let g:WhichKeyDesc_run_choose = "<leader>rc Choose config"
+let g:WhichKeyDesc_run_edit = "<leader>re Edit configs"
+
+" Breakpoints group
+let g:WhichKeyDesc_breakpoint = "<leader>b +Breakpoints/Database"
+let g:WhichKeyDesc_breakpoint_toggle = "<leader>bb Toggle breakpoint"
+let g:WhichKeyDesc_breakpoint_continue = "<leader>bc Continue"
+let g:WhichKeyDesc_breakpoint_step = "<leader>bs Step over"
+let g:WhichKeyDesc_breakpoint_into = "<leader>bi Step into"
+let g:WhichKeyDesc_breakpoint_out = "<leader>bo Step out"
+let g:WhichKeyDesc_breakpoint_eval = "<leader>be Evaluate"
+
+" Refactoring group
+let g:WhichKeyDesc_refactor = "<leader>r +Refactor"
+let g:WhichKeyDesc_refactor_rename = "<leader>re Rename"
+let g:WhichKeyDesc_refactor_method = "<leader>rm Extract method"
+let g:WhichKeyDesc_refactor_variable = "<leader>rv Extract variable"
+let g:WhichKeyDesc_refactor_field = "<leader>rf Extract field"
+let g:WhichKeyDesc_refactor_constant = "<leader>rc Extract constant"
+let g:WhichKeyDesc_refactor_parameter = "<leader>rp Extract parameter"
+let g:WhichKeyDesc_refactor_inline = "<leader>ri Inline"
+
+" Split/Tab group
+let g:WhichKeyDesc_split = "<leader>s +Split"
+let g:WhichKeyDesc_split_vertical = "<leader>sv Split vertical"
+let g:WhichKeyDesc_split_horizontal = "<leader>sh Split horizontal"
+let g:WhichKeyDesc_split_close = "<leader>sc Close split"
+let g:WhichKeyDesc_split_only = "<leader>so Close other splits"
+
+let g:WhichKeyDesc_tab = "<leader>t +Tab"
+let g:WhichKeyDesc_tab_next = "<leader>tn Next tab"
+let g:WhichKeyDesc_tab_prev = "<leader>tp Previous tab"
+let g:WhichKeyDesc_tab_close = "<leader>tc Close tab"
+let g:WhichKeyDesc_tab_only = "<leader>to Close other tabs"
+
+" ============================================================================
+" END OF CONFIGURATION
+" ============================================================================
+" This .ideavimrc closely mirrors the Neovim configuration
+" Some Neovim-specific plugins (Molten, CodeCompanion) have limited equivalents
+" but all core functionality and keybindings are preserved
+" ============================================================================
